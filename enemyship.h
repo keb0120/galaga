@@ -1,0 +1,1 @@
+// Interface for Enemy Ship
