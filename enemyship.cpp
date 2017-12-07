@@ -36,9 +36,6 @@ void Enemy::newRow()
 
   // store coords and index of first numships circles
   for (int i = 0; i < numships; i++) {    
-    //gfx_circle(xpos + indices[i] * separation, ypos, radius);
-    //xcoords.push_back(xpos + indices[i] * separation);// store x coord
-    //ycoords.push_back(ypos); // store y coord
     localxc.push_back(xpos + indices[i] * separation);
     localyc.push_back(ypos);
     shortened.push_back(indices[i]);
@@ -54,11 +51,8 @@ void Enemy::increment()
 {
   // move each row down one row
   for (int j  = 0; j < row_p.size(); j++) {
-  //for (int j = row_p.size() - 1; j >= row_p.size() - 1; j++) {
     for (int i = 0; i < row_p[j].size(); i++) {
-      //ycoords[i] += (*it)[i] * separation;
       ycoords[j][i] += separation;
-      //gfx_circle(xcoords[i], ycoords[i], radius);
     }
   }
   // fill uppermost row with more circles
@@ -69,7 +63,6 @@ void Enemy::display()
 {
   gfx_clear();
   
-  //for (auto it = row_p.begin(); it != row_p.end(); it++) {
   for (int j = 0; j < row_p.size(); j++) {
     for (int i = 0; i < row_p[j].size(); i++) {
       gfx_circle(xcoords[j][i], ycoords[j][i], radius);
@@ -83,11 +76,49 @@ void Enemy::play()
   if (row_p.size() == 0) {
     newRow();
     display();
-    cout << "first" << endl;
   }
   else {
     increment();
     display();
-    cout << "next" << endl;
   }
+}
+
+bool Enemy::lose()
+{
+  // y threshold: 649
+  for (int j = 0; j < row_p.size(); j++) {
+    for (int i = 0; i < row_p[j].size(); i++) {
+      if (ycoords[j][i] + radius >= 550) {
+	cout << "loooooozer" << endl;
+	return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool Enemy::collision(int xcenter, int ycenter, int rad)
+{
+  /* General algorithm:
+     loop through rows
+       loop through individual elements in row
+         if (sqrt( (xcoord - xcenter)^2 + (ycoord - ycenter)^2 ) < radius+rad)
+	   get rid of circle
+	     1. destroy xcoord
+	     2. destroy ycoord
+  */
+
+  for (int j = 0; j < row_p.size(); j++) {
+    for (int i = 0; i < row_p[j].size(); i++) {
+      if (sqrt( (xcoords[j][i] - xcenter)*(xcoord[j][i] - xcenter) +
+		(ycoords[j][i] - ycenter)*(ycoord[j][i] - ycenter)) < (rad+radius))
+      {
+	xcoords[j].erase(xcoords[j].begin() + i);
+	ycoords[j].erase(ycoords[j].begin() + i);
+	return true;
+      }
+    }
+  }
+  return false;
 }

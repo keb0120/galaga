@@ -10,6 +10,7 @@ class Enemy {
   void newRow();
   void play();
   void display();
+  bool lose();
  private:
   int numships;
   vector<vector<int>> row_p;
