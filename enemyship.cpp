@@ -1,5 +1,5 @@
 #include "enemyship.h"
-#include "gfx.h"
+#include "gfxnew.h"
 #include <stdio.h> // for NULL
 #include <stdlib.h> // srand, rand
 #include <time.h> // time
@@ -9,9 +9,13 @@
 
 using namespace std;
 
+vector<vector<int>> xcoords;
+vector<vector<int>> ycoords;
+vector<vector<int>> row_p;
+
 Enemy::Enemy()
 {
-  // can put something in here later but for now don't really need anything  
+ 
 }
 
 Enemy::~Enemy()
@@ -19,50 +23,49 @@ Enemy::~Enemy()
 }
 
 void Enemy::newRow()
-{
+{ 
   numships = 0;
-  numships = rand() % 7  + 1; // random number 1-10
-  vector<int> indices; // has integers 1-7, will be shuffled
-  vector<int> shortened; // will be stored the randomly generated indices
-  vector<int> localxc; // xcoord of circle
-  vector<int> localyc; // ycoord of circle
+  numships = rand() % 7  + 1;
+  vector<int> indices; 
+  vector<int> shortened;
+  vector<int> localxc;
+  vector<int> localyc;
   
-  for (int i = 0; i < 7; i++) { // vector filled with nums 1-7
+  for (int i = 0; i < 7; i++) {
     indices.push_back(i);
   }
   
-  // randomize positions 
+  
   random_shuffle(indices.begin(), indices.end());
-
-  // store coords and index of first numships circles
-  for (int i = 0; i < numships; i++) {    
+  
+  
+  for (int i = 0; i < numships; i++) {
     localxc.push_back(xpos + indices[i] * separation);
     localyc.push_back(ypos);
     shortened.push_back(indices[i]);
   }
-
-  // store row of information
-  row_p.push_back(shortened); // store whole row
+  
+  row_p.push_back(shortened);
   xcoords.push_back(localxc);
   ycoords.push_back(localyc);
 }
 
 void Enemy::increment()
 {
-  // move each row down one row
+
   for (int j  = 0; j < row_p.size(); j++) {
     for (int i = 0; i < row_p[j].size(); i++) {
       ycoords[j][i] += separation;
     }
   }
-  // fill uppermost row with more circles
+
   newRow();
 }
 
 void Enemy::display()
 {
   gfx_clear();
-  
+
   for (int j = 0; j < row_p.size(); j++) {
     for (int i = 0; i < row_p[j].size(); i++) {
       gfx_circle(xcoords[j][i], ycoords[j][i], radius);
@@ -77,48 +80,63 @@ void Enemy::play()
     newRow();
     display();
   }
+  
   else {
     increment();
     display();
   }
 }
 
-bool Enemy::lose()
+bool Enemy::lose(const char * hits, const char * rounds)
 {
-  // y threshold: 649
+  
   for (int j = 0; j < row_p.size(); j++) {
     for (int i = 0; i < row_p[j].size(); i++) {
       if (ycoords[j][i] + radius >= 550) {
-	cout << "loooooozer" << endl;
-	return true;
+        gfx_clear();
+	gfx_text(200, 200, "You lose!");
+	gfx_text(200, 215, "Score: ");
+	gfx_text(300, 215, hits);
+	gfx_text(200, 230, "Rounds: ");
+	gfx_text(300, 230, rounds);
+        return true;
+	
       }
     }
   }
-
+  
   return false;
 }
 
 bool Enemy::collision(int xcenter, int ycenter, int rad)
 {
-  /* General algorithm:
-     loop through rows
-       loop through individual elements in row
-         if (sqrt( (xcoord - xcenter)^2 + (ycoord - ycenter)^2 ) < radius+rad)
-	   get rid of circle
-	     1. destroy xcoord
-	     2. destroy ycoord
-  */
-
   for (int j = 0; j < row_p.size(); j++) {
     for (int i = 0; i < row_p[j].size(); i++) {
-      if (sqrt( (xcoords[j][i] - xcenter)*(xcoord[j][i] - xcenter) +
-		(ycoords[j][i] - ycenter)*(ycoord[j][i] - ycenter)) < (rad+radius))
+      if (sqrt( (xcoords[j][i] - xcenter)*(xcoords[j][i] - xcenter) +
+                (ycoords[j][i] - ycenter)*(ycoords[j][i] - ycenter)) < (rad+radius))
       {
-	xcoords[j].erase(xcoords[j].begin() + i);
-	ycoords[j].erase(ycoords[j].begin() + i);
+        deleteElement(xcoords[j], i);
+        deleteElement(ycoords[j], i);
+        deleteElement(row_p[j], i);
+	display();
 	return true;
       }
     }
   }
   return false;
+}
+
+void Enemy::deleteElement(vector<int>& temp, int col)
+{
+  temp.erase(temp.begin()+col);
+}       
+
+void Enemy::dispVector(vector<vector<int>>& temp)
+{
+  for (int i = 0; i < temp.size(); i++) {
+    for (int j = 0; j < temp[i].size(); j++) {
+      cout << temp[i][j] << " ";
+    }
+    cout << endl;
+  }
 }
