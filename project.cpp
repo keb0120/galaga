@@ -7,22 +7,26 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include "ship.h"
+
 
 using namespace std;
 
-void createShip(int, int, int);
-void moveShot();
-void eraseShot(Enemy, int&);
+void moveShot(vector<int> &, vector<int> &);
+void eraseShot(Enemy, int&, vector<int> &, vector<int> &);
 void masterpiece();
 bool  menu();
 void instructions();
 
-vector <int> xshots;
-vector <int> yshots;
+
 
 int main() {
   srand(time(NULL));
   Enemy en;
+  Ship sh;
+
+  vector <int> xshots;
+  vector <int> yshots;
   int x = 255, y = 664, rad0 = 5, rad1 = 15, y1 = 664, counter = 1001, counter2 = 0;
   int n = 1, numberHit = 0;
   bool check = false, play = false;
@@ -50,36 +54,42 @@ int main() {
       gfx_flush();
       usleep(5000);
       en.display();
-      createShip(x, y, rad1);
+      sh.createShip(x, y, rad1);
+      //createShip(x, y, rad1);
+      
       if (gfx_event_waiting()) {
 	c = gfx_wait();
 	if (c == 'q')
 	  return 0;
-	else if(c == 's' && counter2 > 100){
+	else if(c == 's' && counter2 > 75){
 	  gfx_circle(x, y1 - rad1 - rad0, rad0);
 	  xshots.push_back(x);
 	  yshots.push_back(y1 - rad1 - rad0);
 	  counter2 = 0;
 	}
 	else if(c == 'S'){
-	  if(x > 495){
+	  x = sh.moveRight(x);
+	  /*if(x > 495){
 	    x = 495;
 	  }
 	  else{
 	    x += 5;
-	  }
+	  }*/
 	}
 	else if(c == 'Q'){
-	  if(x < 15){
+	  x = sh.moveLeft(x);
+	  /*if(x < 15){
 	    x = 15;
 	  }
 	  else{
 	    x -= 5;
-	  }
+	    } */
 	}
       }
-      moveShot();
-      eraseShot(en, numberHit);
+      
+      moveShot(xshots, yshots);
+
+      eraseShot(en, numberHit, xshots, yshots);
       check = en.lose((to_string(numberHit)).c_str(), (to_string(n)).c_str());
       if(check == true) {
 	while (c != 'q') {
@@ -104,13 +114,7 @@ int main() {
   return 0;
 }
 
-void createShip(int x, int y, int rad){
-  gfx_line(x - rad, y, x + rad, y);
-  gfx_line(x + rad, y, x, y - rad);
-  gfx_line(x, y - rad, x - rad, y);
-}
-
-void moveShot(){
+void moveShot(vector<int> & xshots, vector<int> & yshots){
   if(xshots.size() > 0){
     for(int i = 0; i < xshots.size(); i++){
       yshots[i] -= 5;
@@ -119,7 +123,7 @@ void moveShot(){
   }
 }
 
-void eraseShot(Enemy en, int & numberHit){
+void eraseShot(Enemy en, int & numberHit, vector<int> & xshots, vector<int> & yshots){
   bool check = false;
   for(int i = 0; i < xshots.size(); i++){
     check = en.collision(xshots[i], yshots[i], 5);
@@ -173,7 +177,7 @@ bool menu() {
     cout << "2. Instructions" << endl;
     cout << "3. Exit" << endl;
     cout << endl;
-    cout << "Enter choice (1-4): ";
+    cout << "Enter choice (1-3): ";
     cin >> choice;
     switch (choice) {
     case '1':
